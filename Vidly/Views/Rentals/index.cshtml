@@ -1,0 +1,90 @@
+﻿
+@{
+    ViewBag.Title = "Active Rentals";
+}
+
+<h2>Active Rentals</h2>
+
+@Html.ActionLink("Rent Movie","new","Rentals",null,new{@class="btn btn-primary"})
+
+
+<table id="rentals" class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Movie</th>
+            <th>Date Rented</th>
+            <th>Return</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+
+
+@section scripts
+{
+    <script>
+
+        $(document).ready(function() {
+            var table = $("#rentals").DataTable({
+                ajax: {
+                    url: "/api/RentalMovies",
+                    dataSrc: ""
+                },
+                columns: [
+                    {
+                        data: "customer.name"
+                    },
+                    {
+                        data:"movie.name"
+                    },
+                    {
+                        data: "dateRented",
+                        render: function (data) {
+                            var cDate = new Date(data);
+                            return (cDate.getMonth() + 1) + '/' + cDate.getDate() + '/' + cDate.getFullYear();
+                        }
+                    },
+                    {
+                        data: "id",
+                        render: function(data) {
+                            return "<button class='btn-link js-return' data-object='" + data + "'>Return</button>";
+                        }
+                    }
+                ]
+            });
+
+
+            $("#rentals").on("click", ".js-return", function () {
+                var button = $(this);
+                bootbox.confirm("Are you sure you want to return this movie",
+                    function(result) {
+                        if (result) {
+                            $.ajax({
+                                url: "/api/rentalmovies/" + button.attr("data-object"),
+                                method: "PUT",
+                                success:function() {
+                                    toastr.success("Movie successfully returned");
+                                    table.row(button.parents("tr")).remove().draw();
+
+                                },
+                                error: function() {
+                                    toastr.error("Something unexpected has been happend");
+                                }
+
+                        });
+
+            }
+                        
+                });
+            });
+
+        });
+
+
+    </script>
+
+}
+
